@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from ..core.logger import logging
 
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -8,6 +9,7 @@ class Database:
     def __init__(self, db_name):
         self.db_name = db_name+'.db'
         self.db_path = os.path.join(path, self.db_name)
+        self.log = logging.getLogger('Database')
         self.databaseInitial()
 
     def databaseInitial(self):
@@ -26,37 +28,77 @@ class Database:
             conn.commit()
             conn.close()
 
-    def fetchMessage(self, user):
+    def quote(self, data_list):
+        for i in range(len(data_list)):
+            data_list[i] = "'{0}'".format(data_list[i])
+        return ", ".join(data_list)
+
+    def and_where(self, data_dict):
+        temp_list = []
+        for key in data_dict.keys():
+            temp_list.append("{0}='{1}'".format(key, data_dict[key]))
+
+        if len(temp_list) == 1:
+            return temp_list[0]
+        else:
+            return ' and '.join(temp_list)
+
+    def deleteOne(self, table, where='1=1'):
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        result = cur.execute("select user, content, timestamp from messages where user='{0}'".format(user)).fetchall()
+        result = cur.execute('delete from {0} where {1}'.format(table, where))
+        cur.close()
+        conn.commit()
+        conn.close()
+        return result
+
+    def fetchOne(self, column, table, where='1=1'):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        result = cur.execute("select {0} from {1} where {2}".format(column, table, where)).fetchone()
         cur.close()
         conn.close()
         return result
+
+    def fetchAll(self, column, table, where='1=1'):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        result = cur.execute("select {0} from {1} where {2}".format(column, table, where)).fetchall()
+        cur.close()
+        conn.close()
+        return result
+
+    def insertOne(self, table, field_list, value_list):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        result = cur.execute("insert into {0}({1}) values({2})".format(table, field_list, self.quote(value_list)))
+        self.log.debug("insert into {0}({1}) values({2})".format(table, field_list, self.quote(value_list)))
+        cur.close()
+        conn.commit()
+        conn.close()
+        return result
+
+    def fetchMessage(self, user):
+        return self.fetchAll('user, content, timestamp', 'messages', self.and_where({'user':user}))
 
     def fetchFriend(self):
-        conn = sqlite3.connect(self.db_path)
-        cur = conn.cursor()
-        result = cur.execute("select user from friends").fetchall()
-        cur.close()
-        conn.close()
-        return result
+        return self.fetchAll('user', 'friends')
 
     def insertMessage(self, user, content):
-        conn_local = sqlite3.connect(self.db_path)
-        cur = conn_local.cursor()
-        cur.execute("insert into messages(USER, CONTENT) VALUES ('{0}', '{1}');".format(user, content))
-        conn_local.commit()
-        cur.close()
-        conn_local.close()
-        return None
+        return self.insertOne('messages', 'USER, CONTENT', [user, content])
 
     def addFriend(self, user):
-        conn_local = sqlite3.connect(self.db_path)
-        cur = conn_local.cursor()
-        cur.execute("insert into friends(USER) VALUES ('{0}');".format(user))
-        conn_local.commit()
+        if self.fetchOne('*', 'friends', self.and_where({'user':user})) is None:
+            return self.insertOne('friends', 'USER', [user])
+        return True
+
+    def clearTable(self, table):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM {0}".format(table))
+        cur.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = '{0}'".format(table))
         cur.close()
-        conn_local.close()
-        return None
+        conn.commit()
+        conn.close()
+        self.log.debug('Clear table {0}'.format(table))
 

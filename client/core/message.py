@@ -22,7 +22,7 @@ class BaseMessage:
 
     def _init_data(self):
         self.data['message_type'] = 'BaseMessage'
-        self.data['user'] = ''
+        self.data['from'] = ''
 
     def _check_data(self):
         pass
@@ -32,6 +32,9 @@ class BaseMessage:
 
     def to_json(self):
         return json.dumps(self.data)
+
+    def to_dict(self):
+        return self.data
 
     def __str__(self):
         return '[{0}: {1}]'.format(self.message_type, str(self.data))
@@ -84,3 +87,40 @@ class EchoMessage(BaseMessage):
         self.data['message_type'] = 'EchoMessage'
 
 
+class FriendMessage(BaseMessage):
+    def __init__(self, data=None):
+        super().__init__(data)
+
+    def _init_data(self):
+        self.data['message_type'] = 'FriendMessage'
+
+
+class FriendRequestMessage(BaseMessage):
+    def __init__(self, data=None):
+        super().__init__(data)
+
+    def _init_data(self):
+        self.data['message_type'] = 'FriendRequestMessage'
+
+
+class FriendAcceptMessage(BaseMessage):
+    def __init__(self, data=None):
+        super().__init__(data)
+
+    def _init_data(self):
+        self.data['message_type'] = 'FriendAcceptMessage'
+
+class FriendUpdateMessage(BaseMessage):
+    def __init__(self, data=None):
+        super().__init__(data)
+
+    def _init_data(self):
+        self.data['message_type'] = 'FriendUpdateMessage'
+
+
+class ServerMessage(BaseMessage):
+    def __init__(self, data=None):
+        super().__init__(data)
+
+    def _init_data(self):
+        self.data['message_type'] = 'ServerMessage'

@@ -1,11 +1,11 @@
 import asyncio
+import time
 import json
 import websockets
-from PyQt5.QtCore import pyqtSignal, QThread
-from .message import ChatMessage, BaseMessage
+from PyQt5 import QtCore
 from .logger import logging
+from .message import *
 from ..database import Database
-
 
 class Route:
     Routes = {}
@@ -17,84 +17,97 @@ class Route:
             return route_function
         return wrapper
 
-class Client(QThread):
-    sendSignal = pyqtSignal(dict)
-    connectSignal = pyqtSignal(dict)
 
-    def __init__(self, loop):
-        super().__init__()
+class Client(QtCore.QThread):
+    connectSignal = QtCore.pyqtSignal(str)
+    loginSuccessSignal = QtCore.pyqtSignal(str)
+
+    def __init__(self, loop, parent=None):
+        super().__init__(parent)
         self.loop = loop
-        self.serverAddress = ''
-        self.user = ''
-        self.password = ''
+        asyncio.set_event_loop(self.loop)
+        self.log = logging.getLogger('ClientWorker')
+        self.connection = None
         self.db = None
-        self.log = logging.getLogger('Client')
-        self.sendSignal.connect(self._sender)
-        self.connectSignal.connect(self.connectSignalHandler)
-        self.loginDoneSignal = None
+        self.username = ''
+
+        self.connectSignal.connect(self.startConnection)
+        self.loginSuccessSignal.connect(self.loginSuccess)
 
     def run(self):
-        self._connect()
+        self.loop.run_until_complete(self._run_forever())
+        self.log.debug('Started.')
 
-    def connectSignalHandler(self, connect_dict):
-        self.log.debug(connect_dict)
-        self.serverAddress = connect_dict['serverAddress']
-        self.user = connect_dict['user']
-        self.password = connect_dict['password']
-        self.start()
+    async def _run_forever(self):
+        while True:
+            await asyncio.sleep(1)
 
-    def _connect(self):
-        log = logging.getLogger('_connect')
-        self.factory = websockets.connect('ws://{0}:30000'.format(self.serverAddress), loop=self.loop)
-        self.client = self.loop.run_until_complete(self.factory)
-        try:
-            self.loop.run_until_complete(self.connect())
-        except KeyboardInterrupt:
-            log.warning('KeyBoard!')
-            self.client.close()
+    def startConnection(self, server_address):
+        self.connection = Connection(server_address, self.loop)
+
+    def send(self, data):
+        data['from'] = self.username
+        self.connection.sender(data)
+
+    def loginSuccess(self, username):
+        self.username = username
+        self.db = Database(username)
+
+class Connection:
+
+    def __init__(self, server_address, loop):
+        self.server_address = server_address
+        self.loop = loop
+        self.log = logging.getLogger('Client({0})'.format(server_address))
+        self.connection = None
+        self.exit = 0
+
+        self.connect()
+
+    def connect(self):
+        self.factory = websockets.connect('ws://{0}:30000'.format(self.server_address), loop=self.loop)
+        self.task = asyncio.ensure_future(self.factory, loop=self.loop)
+        while True:
+            if self.task.done():
+                self.connection = self.task.result()
+                break
+        self.log.debug(self.connection)
+        asyncio.ensure_future(self.listener(), loop=self.loop)
+
+    def fun(self, obj):
+        self.log.debug(obj)
 
     async def listener(self):
-        log = logging.getLogger('Listener')
+        log = self.log.getChild('Listener')
+        log.debug('Started.')
         try:
-            async for message in self.client:
+            async for message in self.connection:
+                if self.exit == 1:
+                    self.connection.close()
+                    break
                 log.debug(message)
                 base_message = BaseMessage(message)
 
                 if base_message.message_type in Route.Routes.keys():
-                    result = await Route.Routes[base_message.message_type](base_message.to_json())
+                    await Route.Routes[base_message.message_type](base_message.to_json())
 
-        except KeyboardInterrupt:
-            log.warning('Listener closed')
-            self.client.close()
+        except Exception as err:
+            log.error(err)
+            self.connection.close()
 
-    def _sender(self, data):
+    async def _sender(self, data):
+        log = self.log.getChild('Sender')
         try:
-            self.sender(data).send(None)
+            await self.connection.send(json.dumps(data))
+        except Exception as err:
+            log.error(err)
+
+    def sender(self, data):
+        try:
+            self._sender(data).send(None)
         except StopIteration:
             pass
 
-    async def sender(self, data):
-        log = logging.getLogger('Sender')
-        try:
-            send_data = ChatMessage(data)
-            log.debug(send_data)
-            await self.client.send(send_data.to_json())
-        except Exception as err:
-            log.warning(err)
-            await asyncio.sleep(1)
-
-    async def connect(self):
-        data = {'message_type':'AuthMessage', 'username':self.user, 'password':self.password}
-        self.db = Database(self.user)
-        self.loginDoneSignal.emit()
-        await self.client.send(json.dumps(data))
-        listener_task = asyncio.ensure_future(self.listener())
-        done, pending = await asyncio.wait(
-            [listener_task],
-            return_when=asyncio.FIRST_EXCEPTION,
-        )
-
-        for task in pending:
-            task.cancel()
 
 client = Client(asyncio.get_event_loop())
+client.start()
