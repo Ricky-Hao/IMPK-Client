@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore
-from ui import *
-from core import logging, client
+from ..ui import *
+from ..core import logging, client
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     updateMessageSignal = QtCore.pyqtSignal()

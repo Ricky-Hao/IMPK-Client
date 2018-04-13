@@ -1,7 +1,7 @@
 from .client import Route, client
 from .logger import logging
 from .message import ChatMessage
-from main import mainWindow
+from ..logic import mainWindow
 
 @Route.route('ChatMessage')
 async def chat(message):

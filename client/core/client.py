@@ -4,7 +4,7 @@ import websockets
 from PyQt5.QtCore import pyqtSignal, QThread
 from .message import ChatMessage, BaseMessage
 from .logger import logging
-from database import Database
+from ..database import Database
 
 
 class Route:
