@@ -1,4 +1,4 @@
-from pysqlcipher3 import
+import sqlite3
 import os
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
