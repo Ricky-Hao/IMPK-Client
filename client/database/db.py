@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 class Database:
     def __init__(self, db_name):

@@ -45,7 +45,7 @@ class Client(QThread):
 
     def _connect(self):
         log = logging.getLogger('_connect')
-        self.factory = websockets.connect('ws://{0}'.format(self.serverAddress), loop=self.loop)
+        self.factory = websockets.connect('ws://{0}:30000'.format(self.serverAddress), loop=self.loop)
         self.client = self.loop.run_until_complete(self.factory)
         try:
             self.loop.run_until_complete(self.connect())
