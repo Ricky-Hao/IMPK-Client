@@ -35,6 +35,7 @@ class AuthResultMessage(BaseMessage):
             self.username = ''
 
     def to_dict(self):
+        data = super().to_dict()
         data['status'] = self.status
         data['username'] = self.username
         return data

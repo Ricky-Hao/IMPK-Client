@@ -42,7 +42,6 @@ class BaseMessage:
     def to_dict(self):
         data = {}
         data['type'] = self.type
-        data['source'] = self.source
 
         return data
 
