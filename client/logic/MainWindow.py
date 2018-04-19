@@ -65,6 +65,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         sendFriendUpdate()
         self.updateMessage()
         self.updateStatus('登陆成功')
+        self.setWindowTitle('{0}-基于公钥加密的即时通讯系统'.format(client.username))
 
     def loginFailed(self):
         self.userEdit.clear()
@@ -73,9 +74,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def sendMessage(self):
         content = self.sendText.toPlainText()
+        client.db.insertMessage(self.toUser, content, client.username)
         sendChat(self.toUser, content)
         self.sendText.clear()
         self.updateStatus('消息成功发送给{0}'.format(self.toUser))
+        self.updateMessage()
 
     def updateFriend(self):
         self.friendList.clear()
@@ -91,7 +94,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def updateMessage(self):
         self.messageList.clear()
         for message in client.db.fetchMessage(self.toUser):
-            self.messageList.addItem('用户：{0:20s} 时间：{2}\n内容：{1}'.format(*message))
+            if message[0] == self.toUser:
+                self.messageList.addItem('[{2}]: → {1}'.format(*message))
+            else:
+                self.messageList.addItem('[{2}]: ← {1}'.format(*message))
         self.messageList.scrollToBottom()
 
 

@@ -18,13 +18,14 @@ class Database:
             cur = conn.cursor()
             cur.execute('''CREATE TABLE messages
                           (ID INTEGER PRIMARY KEY autoincrement ,
-                          USER TEXT NOT NULL ,
+                          USERNAME TEXT NOT NULL ,
                           CONTENT TEXT NOT NULL ,
+                          SENDER TEXT NOT NULL ,
                           TIMESTAMP TimeStamp NOT NULL DEFAULT (datetime('now','localtime')))''')
             cur.execute('''
                       CREATE TABLE friends
                       (ID INTEGER PRIMARY KEY AUTOINCREMENT ,
-                      USER TEXT NOT NULL )''')
+                      USERNAME TEXT NOT NULL )''')
             conn.commit()
             conn.close()
 
@@ -79,17 +80,17 @@ class Database:
         return result
 
     def fetchMessage(self, user):
-        return self.fetchAll('user, content, timestamp', 'messages', self.and_where({'user':user}))
+        return self.fetchAll('sender, content, timestamp', 'messages', self.and_where({'username':user}))
 
     def fetchFriend(self):
-        return self.fetchAll('user', 'friends')
+        return self.fetchAll('username', 'friends')
 
-    def insertMessage(self, user, content):
-        return self.insertOne('messages', 'USER, CONTENT', [user, content])
+    def insertMessage(self, user, content, sender):
+        return self.insertOne('messages', 'USERNAME, CONTENT, SENDER', [user, content, sender])
 
     def addFriend(self, user):
-        if self.fetchOne('*', 'friends', self.and_where({'user':user})) is None:
-            return self.insertOne('friends', 'USER', [user])
+        if self.fetchOne('*', 'friends', self.and_where({'username':user})) is None:
+            return self.insertOne('friends', 'USERNAME', [user])
         return True
 
     def clearTable(self, table):

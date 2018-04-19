@@ -23,7 +23,7 @@ async def chat(message):
     log = message_log.getChild('Chat')
     message = ChatMessage(message)
     log.debug(message)
-    client.db.insertMessage(message.source, message.content)
+    client.db.insertMessage(message.source, message.content, message.source)
     mainWindow.updateMessageSignal.emit()
 
 @Route.route('FriendMessage')
