@@ -1,6 +1,6 @@
 from .client import *
 from .logger import logging
-from .message import *
+from ..message import *
 from .send import *
 from .route import *
 

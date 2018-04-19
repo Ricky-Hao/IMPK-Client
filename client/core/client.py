@@ -4,7 +4,7 @@ import json
 import websockets
 from PyQt5 import QtCore
 from .logger import logging
-from .message import *
+from ..message import *
 from ..database import Database
 
 class Route:
@@ -46,7 +46,7 @@ class Client(QtCore.QThread):
         self.connection = Connection(server_address, self.loop)
 
     def send(self, data):
-        data['from'] = self.username
+        data['source'] = self.username
         self.connection.sender(data)
 
     def loginSuccess(self, username):
@@ -88,8 +88,9 @@ class Connection:
                 log.debug(message)
                 base_message = BaseMessage(message)
 
-                if base_message.message_type in Route.Routes.keys():
-                    await Route.Routes[base_message.message_type](base_message.to_json())
+                if base_message.type in Route.Routes.keys():
+                    log.debug(base_message.type)
+                    await Route.Routes[base_message.type](message)
 
         except Exception as err:
             log.error(err)

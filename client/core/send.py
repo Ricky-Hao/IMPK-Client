@@ -1,9 +1,9 @@
 from hashlib import md5
-from .message import *
+from ..message import *
 from .client import client
 
 def sendChat(to, content):
-    client.send(ChatMessage({'to':to, 'content':content}).to_dict())
+    client.send(ChatMessage({'to_user':to, 'content':content}).to_dict())
 
 def sendFriendUpdate():
     client.send(FriendUpdateMessage().to_dict())
@@ -16,4 +16,4 @@ def sendAcceptFriend(friend_name, accept):
 
 def sendAuthMessage(username, password):
     password = md5(password.encode()).hexdigest()
-    client.send(AuthMessage({'username':username, 'password':password}).to_dict())
+    client.send(AuthRequestMessage({'username':username, 'password':password}).to_dict())
