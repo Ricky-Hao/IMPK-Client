@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from ..core.logger import logging
+from ..core.logger import logger
 
 path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -9,7 +9,7 @@ class Database:
     def __init__(self, db_name):
         self.db_name = db_name+'.db'
         self.db_path = os.path.join(path, self.db_name)
-        self.log = logging.getLogger('Database')
+        self.log = logger.getChild('Database')
         self.databaseInitial()
 
     def databaseInitial(self):

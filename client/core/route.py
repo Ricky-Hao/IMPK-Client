@@ -1,10 +1,10 @@
 from .client import Route, client
-from .logger import logging
+from .logger import logger
 from ..message import *
 from .client import client
 from ..logic import mainWindow
 
-message_log = logging.getLogger('Message')
+message_log = logger.getChild('Route')
 
 @Route.route('AuthResultMessage')
 async def login(message):

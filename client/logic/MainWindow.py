@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore
 from ..ui import *
-from ..core import logging, client, sendAcceptFriend, sendChat, sendAuthMessage, sendFriendRequest, sendFriendUpdate
+from ..core import logger, client, sendAcceptFriend, sendChat, sendAuthMessage, sendFriendRequest, sendFriendUpdate
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -12,7 +12,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     updateStatusSignal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
-        self.log = logging.getLogger('MainWindow')
+        self.log = logger.getChild('MainWindow')
         super().__init__(parent)
         self.toUser = ''
 

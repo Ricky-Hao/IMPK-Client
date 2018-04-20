@@ -1,7 +1,7 @@
 import json
-from ..core.logger import logging
+from ..core.logger import logger
 
-log = logging.getLogger('MessageClass')
+log = logger.getChild('MessageClass')
 
 class BaseMessage:
     def __init__(self, data=None):

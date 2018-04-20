@@ -3,7 +3,7 @@ import time
 import json
 import websockets
 from PyQt5 import QtCore
-from .logger import logging
+from .logger import logger
 from ..message import *
 from ..database import Database
 
@@ -26,7 +26,7 @@ class Client(QtCore.QThread):
         super().__init__(parent)
         self.loop = loop
         asyncio.set_event_loop(self.loop)
-        self.log = logging.getLogger('ClientWorker')
+        self.log = logger.getChild('ClientWorker')
         self.connection = None
         self.db = None
         self.username = ''
@@ -58,7 +58,7 @@ class Connection:
     def __init__(self, server_address, loop):
         self.server_address = server_address
         self.loop = loop
-        self.log = logging.getLogger('Client({0})'.format(server_address))
+        self.log = logger.getChild('Client({0})'.format(server_address))
         self.connection = None
         self.exit = 0
 
