@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtCore
 from Client.ui import *
 from Client.core import client, send
-from Client.util.logger import logger
+from Client.util import logger
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -94,18 +94,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def sendMessage(self):
         content = self.sendText.toPlainText()
-        client.db.insertMessage(self.toUser, content, client.username)
-        send.sendChat(self.toUser, content)
-        self.sendText.clear()
-        self.updateStatus('消息成功发送给{0}'.format(self.toUser))
-        self.updateMessage()
+        if '' not in (self.toUser, content):
+            client.db.insertMessage(self.toUser, content, client.username)
+            send.sendChat(self.toUser, content)
+            self.sendText.clear()
+            self.updateStatus('消息成功发送给{0}'.format(self.toUser))
+            self.updateMessage()
+        else:
+            QtWidgets.QMessageBox.question(self, '发送消息失败', '请选择消息对象，且发送内容不为空。')
 
     def updateFriend(self):
         self.friendList.clear()
         for friend in client.db.fetchFriend():
             if self.toUser == '':
                 self.toUser = friend[0]
-            self.friendList.addItem(friend[0])
+            item = QtWidgets.QListWidgetItem(friend[0])
+            self.friendList.addItem(item)
 
     def changeTargetUser(self, item):
         self.toUser = item.text()

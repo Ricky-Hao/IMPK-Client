@@ -5,7 +5,7 @@ import websockets
 from PyQt5 import QtCore
 from Client.message import *
 from Client.database import Database
-from Client.util.logger import logger
+from Client.util import logger
 
 class Route:
     Routes = {}

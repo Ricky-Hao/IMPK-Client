@@ -1,5 +1,5 @@
 import json
-from Client.util.logger import logger
+from Client.util import logger
 
 log = logger.getChild('MessageClass')
 

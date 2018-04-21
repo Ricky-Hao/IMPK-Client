@@ -1,7 +1,6 @@
 import sqlite3
 import os
-from Client.util.logger import logger
-from Client.util import DB_ROOT
+from Client.util import DB_ROOT, logger
 
 
 

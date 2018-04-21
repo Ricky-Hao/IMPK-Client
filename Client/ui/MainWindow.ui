@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>714</width>
-    <height>667</height>
+    <width>692</width>
+    <height>536</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,6 +18,10 @@
   </property>
   <property name="windowTitle">
    <string>基于公钥加密的即时通讯系统-客户端</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resource/MainWindow.qrc">
+    <normaloff>:/icon/icons8-r-52.png</normaloff>:/icon/icons8-r-52.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -59,8 +63,14 @@
            <verstretch>4</verstretch>
           </sizepolicy>
          </property>
-         <property name="viewMode">
-          <enum>QListView::ListMode</enum>
+         <property name="uniformItemSizes">
+          <bool>true</bool>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="selectionRectVisible">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -68,15 +78,18 @@
         <widget class="QListWidget" name="messageList">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>2</horstretch>
+           <horstretch>3</horstretch>
            <verstretch>4</verstretch>
           </sizepolicy>
          </property>
-         <property name="textElideMode">
-          <enum>Qt::ElideLeft</enum>
+         <property name="uniformItemSizes">
+          <bool>true</bool>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
+         </property>
+         <property name="selectionRectVisible">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -88,7 +101,7 @@
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>1</horstretch>
-        <verstretch>10</verstretch>
+        <verstretch>4</verstretch>
        </sizepolicy>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -249,7 +262,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>714</width>
+     <width>692</width>
      <height>23</height>
     </rect>
    </property>
@@ -298,7 +311,9 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="resource/MainWindow.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>clearButton</sender>
