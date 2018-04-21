@@ -133,7 +133,3 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
         # Todo
 
-
-
-
-mainWindow = MainWindow()
