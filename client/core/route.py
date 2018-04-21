@@ -46,3 +46,4 @@ async def friendRequest(message):
 async def server(message):
     message = ServerMessage(message)
     mainWindow.updateStatusSignal.emit('{0}: {1}'.format(message.source, message.content))
+

@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore
 from ..ui import *
-from ..core import logger, client, sendAcceptFriend, sendChat, sendAuthMessage, sendFriendRequest, sendFriendUpdate
+from ..core import logger, client, sendAcceptFriend, sendChat, sendAuthMessage, sendFriendRequest, sendFriendUpdate, sendRegisterMessage
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -29,6 +29,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.friendList.itemClicked.connect(self.changeTargetUser)
         self.sendButton.clicked.connect(self.sendMessage)
         self.addFriendAction.triggered.connect(self.addFriend)
+        self.registerButton.clicked.connect(self.register)
+        self.generatePrivateKeyAction.triggered.connect(self.generatePrivateKey)
+        self.loadPrivateKeyAction.triggered.connect(self.loadPrivateKey)
 
     def testWidgetLink(self):
         #For Test
@@ -56,8 +59,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         sendAcceptFriend(friend, result==QtWidgets.QMessageBox.Yes)
 
     def login(self):
-        self.connectSignal.emit(self.serverAddressEdit.text())
-        sendAuthMessage(self.userEdit.text(), self.passwordEdit.text())
+        server_address = self.serverAddressEdit.text()
+        username = self.userEdit.text()
+        password = self.passwordEdit.text()
+        if '' in (username, password, server_address):
+            QtWidgets.QMessageBox.question(self, '登录失败', '请输入用户信息。')
+        else:
+            self.connectSignal.emit(server_address)
+            sendAuthMessage(self.userEdit.text(), self.passwordEdit.text())
+
+    def register(self):
+        server_address = self.serverAddressEdit.text()
+        username = self.userEdit.text()
+        password = self.passwordEdit.text()
+        if '' in (username, password, server_address):
+            QtWidgets.QMessageBox.question(self, '注册失败', '请输入用户信息。')
+        else:
+            self.connectSignal.emit(server_address)
+            sendRegisterMessage(self.userEdit.text(), self.passwordEdit.text())
 
     def loginSuccess(self):
         self.loginButton.setText('已登录')
@@ -95,10 +114,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.messageList.clear()
         for message in client.db.fetchMessage(self.toUser):
             if message[0] == self.toUser:
-                self.messageList.addItem('[{2}]: → {1}'.format(*message))
+                item =QtWidgets.QListWidgetItem('[{2}]: → {1}'.format(*message))
             else:
-                self.messageList.addItem('[{2}]: ← {1}'.format(*message))
+                item = QtWidgets.QListWidgetItem('[{2}]: ← {1}'.format(*message))
+
+            self.messageList.addItem(item)
         self.messageList.scrollToBottom()
+
+    def generatePrivateKey(self):
+        if self.loginButton.text() != '已登录':
+            QtWidgets.QMessageBox.question(self, '生成本地密钥', '请先登录服务器。')
+        else:
+            password = self.passwordEdit.text()
+            username = self.userEdit.text()
+
+
 
 
 mainWindow = MainWindow()

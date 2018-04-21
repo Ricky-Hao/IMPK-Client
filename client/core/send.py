@@ -17,3 +17,7 @@ def sendAcceptFriend(friend_name, accept):
 def sendAuthMessage(username, password):
     password = md5(password.encode()).hexdigest()
     client.send(AuthRequestMessage({'username':username, 'password':password}).to_dict())
+
+def sendRegisterMessage(username, password):
+    password = md5(password.encode()).hexdigest()
+    client.send(RegisterRequestMessage({'username':username, 'password':password}).to_dict())

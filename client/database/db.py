@@ -1,14 +1,14 @@
 import sqlite3
 import os
 from ..core.logger import logger
+from ..util import PROJECT_ROOT
 
-path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class Database:
     def __init__(self, db_name):
         self.db_name = db_name+'.db'
-        self.db_path = os.path.join(path, self.db_name)
+        self.db_path = os.path.join(PROJECT_ROOT, self.db_name)
         self.log = logger.getChild('Database')
         self.databaseInitial()
 
@@ -72,8 +72,10 @@ class Database:
     def insertOne(self, table, field_list, value_list):
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        result = cur.execute("insert into {0}({1}) values({2})".format(table, field_list, self.quote(value_list)))
-        self.log.debug("insert into {0}({1}) values({2})".format(table, field_list, self.quote(value_list)))
+        sql = 'insert into {0}({1}) values({2})'.format(table, field_list, ','.join(['?']*len(value_list)))
+        self.log.debug('SQL: {0}, Value list: {1}'.format(sql, value_list))
+
+        result = cur.execute(sql, value_list)
         cur.close()
         conn.commit()
         conn.close()
