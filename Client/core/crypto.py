@@ -15,6 +15,18 @@ def getUserPath(username):
         os.makedirs(path)
     return path
 
+def checkUserPrivateKey(username):
+    key_path = os.path.join(getUserPath(username), '{0}.key'.format(username))
+    if os.path.exists(key_path):
+        return True
+    return False
+
+def checkUserCertKey(username):
+    cert_path = os.path.join(getUserPath(username), '{0}.crt'.format(username))
+    if os.path.exists(cert_path):
+        return True
+    return False
+
 def generatePrivate(username, password):
     key = rsa.generate_private_key(
         public_exponent = 65537,
@@ -69,7 +81,7 @@ def signCSR(ca, ca_key, csr, timedelta, path):
 
     return cert
 
-def loadPrivate(key_data, password=None):
+def loadPrivate(key_data, password):
     if not isinstance(key_data, bytes):
         key_data = key_data.encode()
 
@@ -78,7 +90,13 @@ def loadPrivate(key_data, password=None):
 
     return serialization.load_pem_private_key(key_data, password, default_backend())
 
-def loadPrivateFromFile(username, password=None):
+def loadPrivateFromFile(key_path, password):
+    with open(key_path, 'rb') as f:
+        key_data = f.read()
+
+    return loadPrivate(key_data, password)
+
+def loadPrivateFromUser(username, password):
     key_path = os.path.join(getUserPath(username), '{0}.key'.format(username))
     with open(key_path, 'rb') as f:
         key_data = f.read()
@@ -91,7 +109,14 @@ def loadCert(cert_data):
 
     return x509.load_pem_x509_certificate(cert_data, default_backend())
 
-def loadCertFromFile(username):
+def loadCertFromFile(cert_path):
+    with open(cert_path, 'rb') as f:
+        cert_data = f.read()
+
+    return loadCert(cert_data)
+
+
+def loadCertFromUser(username):
     cert_path = os.path.join(getUserPath(username), '{0}.crt'.format(username))
     with open(cert_path, 'rb') as f:
         cert_data = f.read()

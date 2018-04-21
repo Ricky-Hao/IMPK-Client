@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtCore
 from Client.ui import *
-from Client.core import client, send
-from Client.util import logger
+from Client.core import client, send, crypto
+from Client.util import logger, KEY_ROOT
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -16,6 +16,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.log = logger.getChild('MainWindow')
         super().__init__(parent)
         self.toUser = ''
+        self.privateKey = None
+        self.certKey = None
+        self.username = ''
+        self.password = ''
 
         self.connectSignal = None
 
@@ -33,6 +37,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.registerButton.clicked.connect(self.register)
         self.generatePrivateKeyAction.triggered.connect(self.generatePrivateKey)
         self.loadPrivateKeyAction.triggered.connect(self.loadPrivateKey)
+        self.generateCertAction.triggered.connect(self.generateCert)
+        self.loadCertAction.triggered.connect(self.loadCert)
 
     def testWidgetLink(self):
         #For Test
@@ -61,9 +67,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def login(self):
         server_address = self.serverAddressEdit.text()
-        username = self.userEdit.text()
-        password = self.passwordEdit.text()
-        if '' in (username, password, server_address):
+        self.username = self.userEdit.text()
+        self.password = self.passwordEdit.text()
+        if '' in (self.username, self.password, server_address):
             QtWidgets.QMessageBox.question(self, '登录失败', '请输入用户信息。')
         else:
             self.connectSignal.emit(server_address)
@@ -71,9 +77,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def register(self):
         server_address = self.serverAddressEdit.text()
-        username = self.userEdit.text()
-        password = self.passwordEdit.text()
-        if '' in (username, password, server_address):
+        self.username = self.userEdit.text()
+        self.password = self.passwordEdit.text()
+        if '' in (self.username, self.password, server_address):
             QtWidgets.QMessageBox.question(self, '注册失败', '请输入用户信息。')
         else:
             self.connectSignal.emit(server_address)
@@ -82,10 +88,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def loginSuccess(self):
         self.loginButton.setText('已登录')
         self.loginButton.disconnect()
+        self.registerButton.setDisabled(True)
         send.sendFriendUpdate()
         self.updateMessage()
         self.updateStatus('登陆成功')
-        self.setWindowTitle('{0}-基于公钥加密的即时通讯系统'.format(client.username))
+        self.setWindowTitle('{0}-基于公钥加密的即时通讯系统'.format(self.username))
+        if crypto.checkUserPrivateKey(self.username):
+            self.privateKey = crypto.loadPrivateFromUser(self.username, self.password)
+            self.loginButton.setText('已装载个人密钥')
+        if crypto.checkUserCertKey(self.username):
+            self.certKey = crypto.loadCertFromUser(self.username)
 
     def loginFailed(self):
         self.userEdit.clear()
@@ -95,7 +107,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def sendMessage(self):
         content = self.sendText.toPlainText()
         if '' not in (self.toUser, content):
-            client.db.insertMessage(self.toUser, content, client.username)
+            client.db.insertMessage(self.toUser, content, self.username)
             send.sendChat(self.toUser, content)
             self.sendText.clear()
             self.updateStatus('消息成功发送给{0}'.format(self.toUser))
@@ -130,10 +142,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.loginButton.text() != '已登录':
             QtWidgets.QMessageBox.question(self, '生成本地密钥', '请先登录服务器。')
         else:
-            password = self.passwordEdit.text()
-            username = self.userEdit.text()
+            self.privateKey = crypto.generatePrivate(self.username, self.password)
+            self.loginButton.setText('已加载个人密钥')
+            self.log.debug(self.privateKey)
 
     def loadPrivateKey(self):
+        dialog_result = QtWidgets.QFileDialog.getOpenFileName(self, '选择个人密钥', KEY_ROOT)
+        if isinstance(dialog_result, tuple):
+            file_path = dialog_result[0]
+            self.privateKey = crypto.loadPrivateFromFile(file_path, self.password)
+            self.loginButton.setText('已加载个人密钥')
+            self.log.debug(self.privateKey)
+
+    def loadCert(self):
         pass
         # Todo
+
+    def generateCert(self):
+        pass
+        # Todo
+
 
