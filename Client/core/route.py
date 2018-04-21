@@ -1,8 +1,8 @@
-from .client import Route, client
-from .logger import logger
-from ..message import *
-from .client import client
-from ..logic import mainWindow
+from Client.core import client
+from Client.core.client import Route
+from Client.util.logger import logger
+from Client.message import *
+from Client.logic import mainWindow
 
 message_log = logger.getChild('Route')
 

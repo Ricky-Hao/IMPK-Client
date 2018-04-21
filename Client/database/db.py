@@ -1,14 +1,14 @@
 import sqlite3
 import os
-from ..core.logger import logger
-from ..util import PROJECT_ROOT
+from Client.util.logger import logger
+from Client.util import DB_ROOT
 
 
 
 class Database:
     def __init__(self, db_name):
         self.db_name = db_name+'.db'
-        self.db_path = os.path.join(PROJECT_ROOT, self.db_name)
+        self.db_path = os.path.join(DB_ROOT, self.db_name)
         self.log = logger.getChild('Database')
         self.databaseInitial()
 

@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets, QtCore
-from ..ui import *
-from ..core import logger, client, sendAcceptFriend, sendChat, sendAuthMessage, sendFriendRequest, sendFriendUpdate, sendRegisterMessage
+from Client.ui import *
+from Client.core import client, send
+from Client.util.logger import logger
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -51,12 +52,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def addFriend(self):
         text, ok = QtWidgets.QInputDialog.getText(self, '添加好友','好友ID:')
         if ok:
-            sendFriendRequest(text)
+            send.sendFriendRequest(text)
 
     def requestFriend(self, friend):
         self.log.debug(friend)
         result = QtWidgets.QMessageBox.question(self, '好友请求', '是否接受{0}的好友请求？'.format(friend))
-        sendAcceptFriend(friend, result==QtWidgets.QMessageBox.Yes)
+        send.sendAcceptFriend(friend, result==QtWidgets.QMessageBox.Yes)
 
     def login(self):
         server_address = self.serverAddressEdit.text()
@@ -66,7 +67,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QMessageBox.question(self, '登录失败', '请输入用户信息。')
         else:
             self.connectSignal.emit(server_address)
-            sendAuthMessage(self.userEdit.text(), self.passwordEdit.text())
+            send.sendAuthMessage(self.userEdit.text(), self.passwordEdit.text())
 
     def register(self):
         server_address = self.serverAddressEdit.text()
@@ -76,12 +77,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QMessageBox.question(self, '注册失败', '请输入用户信息。')
         else:
             self.connectSignal.emit(server_address)
-            sendRegisterMessage(self.userEdit.text(), self.passwordEdit.text())
+            send.sendRegisterMessage(self.userEdit.text(), self.passwordEdit.text())
 
     def loginSuccess(self):
         self.loginButton.setText('已登录')
         self.loginButton.disconnect()
-        sendFriendUpdate()
+        send.sendFriendUpdate()
         self.updateMessage()
         self.updateStatus('登陆成功')
         self.setWindowTitle('{0}-基于公钥加密的即时通讯系统'.format(client.username))
@@ -94,7 +95,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def sendMessage(self):
         content = self.sendText.toPlainText()
         client.db.insertMessage(self.toUser, content, client.username)
-        sendChat(self.toUser, content)
+        send.sendChat(self.toUser, content)
         self.sendText.clear()
         self.updateStatus('消息成功发送给{0}'.format(self.toUser))
         self.updateMessage()
@@ -127,6 +128,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             password = self.passwordEdit.text()
             username = self.userEdit.text()
+
+    def loadPrivateKey(self):
+        pass
+        # Todo
 
 
 

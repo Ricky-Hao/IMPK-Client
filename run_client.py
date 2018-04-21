@@ -1,8 +1,9 @@
-from client import *
+import sys
+from Client import *
 
 
 if __name__ == '__main__':
-    log = logging.getLogger('Run_Client')
+    log = logger.getChild('Run_Client')
     try:
         mainWindow.show()
         sys.exit(app.exec_())

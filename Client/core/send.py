@@ -1,6 +1,6 @@
 from hashlib import md5
-from ..message import *
-from .client import client
+from Client.message import *
+from Client.core import client
 
 def sendChat(to, content):
     client.send(ChatMessage({'to_user':to, 'content':content}).to_dict())

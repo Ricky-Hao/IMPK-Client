@@ -3,9 +3,9 @@ import time
 import json
 import websockets
 from PyQt5 import QtCore
-from .logger import logger
-from ..message import *
-from ..database import Database
+from Client.message import *
+from Client.database import Database
+from Client.util.logger import logger
 
 class Route:
     Routes = {}
@@ -109,6 +109,3 @@ class Connection:
         except StopIteration:
             pass
 
-
-client = Client(asyncio.get_event_loop())
-client.start()
