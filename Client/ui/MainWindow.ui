@@ -163,7 +163,7 @@
           </sizepolicy>
          </property>
          <property name="uniformItemSizes">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -182,7 +182,7 @@
           </sizepolicy>
          </property>
          <property name="uniformItemSizes">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -282,23 +282,7 @@
     <property name="title">
      <string>菜单</string>
     </property>
-    <widget class="QMenu" name="privateKeyMenu">
-     <property name="title">
-      <string>本地密钥管理</string>
-     </property>
-     <addaction name="generatePrivateKeyAction"/>
-     <addaction name="loadPrivateKeyAction"/>
-    </widget>
-    <widget class="QMenu" name="certMenu">
-     <property name="title">
-      <string>本地证书管理</string>
-     </property>
-     <addaction name="generateCertAction"/>
-     <addaction name="loadCertAction"/>
-    </widget>
     <addaction name="addFriendAction"/>
-    <addaction name="privateKeyMenu"/>
-    <addaction name="certMenu"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
@@ -352,8 +336,8 @@
    <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>115</x>
-     <y>540</y>
+     <x>128</x>
+     <y>507</y>
     </hint>
     <hint type="destinationlabel">
      <x>104</x>

@@ -25,6 +25,14 @@ class CertificateRequestMessage(BaseMessage):
     def _init_type(self):
         self.type = 'CertificateRequestMessage'
 
+    def _parse_dict(self, data):
+        super()._parse_dict(data)
+        self.request_user = data['request_user']
+
+    def to_dict(self):
+        data = super().to_dict()
+        data['request_user'] = self.request_user
+        return data
 
 class CertificateInstallMessage(BaseMessage):
     def __init__(self, data=None):

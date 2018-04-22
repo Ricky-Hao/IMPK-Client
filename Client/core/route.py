@@ -1,4 +1,4 @@
-from Client.core import client
+from Client.core import client, crypto
 from Client.core.client import Route
 from Client.message import *
 from Client.logic import mainWindow
@@ -23,8 +23,15 @@ async def chat(message):
     log = message_log.getChild('Chat')
     message = ChatMessage(message)
     log.debug(message)
-    client.db.insertMessage(message.source, message.content, message.source)
-    mainWindow.updateMessageSignal.emit()
+    plaintext = crypto.decryptAndVerify(message.ciphertext,
+                                        message.signature,
+                                        crypto.loadCertFromUser(message.source).public_key(),
+                                        mainWindow.privateKey)
+    if plaintext == '':
+        mainWindow.updateStatusSignal.emit('{0}的消息解密失败。'.format(message.source))
+    else:
+        client.db.insertMessage(message.source, plaintext, message.source)
+        mainWindow.updateMessageSignal.emit()
 
 @Route.route('FriendMessage')
 async def friend(message):
@@ -47,3 +54,12 @@ async def server(message):
     message = ServerMessage(message)
     mainWindow.updateStatusSignal.emit('{0}: {1}'.format(message.source, message.content))
 
+@Route.route('CertificateInstallMessage')
+async def certInstall(message):
+    log = message_log.getChild('CertInstall')
+
+    message = CertificateInstallMessage(message)
+    crypto.installCertForUser(message.cert_user, message.cert)
+    log.info('Install Cert for {0}.'.format(message.cert_user))
+
+    mainWindow.installCertSignal.emit(message.cert_user)

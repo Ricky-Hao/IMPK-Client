@@ -1,3 +1,4 @@
+from functools import partial
 from PyQt5 import QtWidgets, QtCore
 from Client.ui import *
 from Client.core import client, send, crypto
@@ -11,13 +12,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     updateFriendSignal = QtCore.pyqtSignal()
     requestFriendSignal = QtCore.pyqtSignal(str)
     updateStatusSignal = QtCore.pyqtSignal(str)
+    installCertSignal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         self.log = logger.getChild('MainWindow')
         super().__init__(parent)
         self.toUser = ''
         self.privateKey = None
-        self.certKey = None
+        self.cert = None
         self.username = ''
         self.password = ''
 
@@ -35,10 +37,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sendButton.clicked.connect(self.sendMessage)
         self.addFriendAction.triggered.connect(self.addFriend)
         self.registerButton.clicked.connect(self.register)
-        self.generatePrivateKeyAction.triggered.connect(self.generatePrivateKey)
-        self.loadPrivateKeyAction.triggered.connect(self.loadPrivateKey)
-        self.generateCertAction.triggered.connect(self.generateCert)
-        self.loadCertAction.triggered.connect(self.loadCert)
 
     def testWidgetLink(self):
         #For Test
@@ -51,6 +49,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.updateFriendSignal.connect(self.updateFriend)
         self.requestFriendSignal.connect(self.requestFriend)
         self.updateStatusSignal.connect(self.updateStatus)
+        self.installCertSignal.connect(self.installCert)
 
     def updateStatus(self, data):
         self.statusBar.showMessage(data)
@@ -88,16 +87,37 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def loginSuccess(self):
         self.loginButton.setText('已登录')
         self.loginButton.disconnect()
-        self.registerButton.setDisabled(True)
+        self.registerButton.disconnect()
         send.sendFriendUpdate()
         self.updateMessage()
         self.updateStatus('登陆成功')
         self.setWindowTitle('{0}-基于公钥加密的即时通讯系统'.format(self.username))
+
         if crypto.checkUserPrivateKey(self.username):
             self.privateKey = crypto.loadPrivateFromUser(self.username, self.password)
-            self.loginButton.setText('已装载个人密钥')
+        else:
+            self.privateKey = crypto.generatePrivate(self.username, self.password)
+        self.loginButton.setText('已装载个人密钥')
+        self.loginButton.clicked.connect(partial(self.showText, crypto.getUserFilePath(self.username, 'key')))
+
         if crypto.checkUserCertKey(self.username):
-            self.certKey = crypto.loadCertFromUser(self.username)
+            self.installCert(self.username)
+        else:
+            csr = crypto.generateCSR(self.username, self.privateKey, 'CN', 'ShanXi', 'XiAn', 'XDU', 'CE', self.username)
+            send.sendCertificateSigningRequestMessage(csr)
+
+    def installCert(self, username):
+        if self.username == username:
+            self.cert = crypto.loadCertFromUser(self.username)
+            self.registerButton.setText('已装载个人证书')
+            self.registerButton.clicked.connect(partial(self.showText, crypto.getUserFilePath(username, 'crt')))
+            self.log.debug(self.privateKey)
+            self.log.debug(self.cert)
+
+    def showText(self, file_path):
+        with open(file_path, 'r') as f:
+            QtWidgets.QMessageBox.question(self, '文件内容', f.read())
+
 
     def loginFailed(self):
         self.userEdit.clear()
@@ -108,7 +128,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         content = self.sendText.toPlainText()
         if '' not in (self.toUser, content):
             client.db.insertMessage(self.toUser, content, self.username)
-            send.sendChat(self.toUser, content)
+            to_cert = crypto.loadCertFromUser(self.toUser)
+            ciphertext, signature = crypto.encryptAndSign(content, to_cert.public_key(), self.privateKey)
+            send.sendChat(self.toUser, ciphertext, signature)
             self.sendText.clear()
             self.updateStatus('消息成功发送给{0}'.format(self.toUser))
             self.updateMessage()
@@ -131,35 +153,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.messageList.clear()
         for message in client.db.fetchMessage(self.toUser):
             if message[0] == self.toUser:
-                item =QtWidgets.QListWidgetItem('[{2}]: → {1}'.format(*message))
+                item =QtWidgets.QListWidgetItem('[{2}]: ← {1}'.format(*message))
             else:
-                item = QtWidgets.QListWidgetItem('[{2}]: ← {1}'.format(*message))
+                item = QtWidgets.QListWidgetItem('[{2}]: →  {1}'.format(*message))
 
             self.messageList.addItem(item)
         self.messageList.scrollToBottom()
-
-    def generatePrivateKey(self):
-        if self.loginButton.text() != '已登录':
-            QtWidgets.QMessageBox.question(self, '生成本地密钥', '请先登录服务器。')
-        else:
-            self.privateKey = crypto.generatePrivate(self.username, self.password)
-            self.loginButton.setText('已加载个人密钥')
-            self.log.debug(self.privateKey)
-
-    def loadPrivateKey(self):
-        dialog_result = QtWidgets.QFileDialog.getOpenFileName(self, '选择个人密钥', KEY_ROOT)
-        if isinstance(dialog_result, tuple):
-            file_path = dialog_result[0]
-            self.privateKey = crypto.loadPrivateFromFile(file_path, self.password)
-            self.loginButton.setText('已加载个人密钥')
-            self.log.debug(self.privateKey)
-
-    def loadCert(self):
-        pass
-        # Todo
-
-    def generateCert(self):
-        pass
-        # Todo
 
 
