@@ -6,3 +6,4 @@ resource_path = os.path.join(ui_path, 'resource')
 sys.path.append(resource_path)
 
 from Client.ui.MainWindow import *
+from Client.ui.resource import *

@@ -196,4 +196,4 @@ class Ui_MainWindow(object):
         self.generateCertAction.setText(_translate("MainWindow", "生成"))
         self.loadCertAction.setText(_translate("MainWindow", "导入"))
 
-import MainWindow_rc
+import Client.ui.resource.MainWindow_rc

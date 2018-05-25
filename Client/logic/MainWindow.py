@@ -118,7 +118,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         with open(file_path, 'r') as f:
             QtWidgets.QMessageBox.question(self, '文件内容', f.read())
 
-
     def loginFailed(self):
         self.userEdit.clear()
         self.passwordEdit.clear()
